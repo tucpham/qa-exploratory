@@ -1,0 +1,15 @@
+{
+  "name": "dtvn-qa-bot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI adhoc-testing bot: prompt + skill + Playwright MCP + oracle scripts",
+  "scripts": {
+    "mcp": "playwright-mcp",
+    "call": "node tools/mcp-call.js",
+    "oracle": "node oracles/run.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "*",
+    "@playwright/mcp": "*"
+  }
+}

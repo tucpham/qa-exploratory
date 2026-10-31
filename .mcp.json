@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless",
+        "--isolated",
+        "--allowed-origins", "https://staging.YOUR-PROJECT.local",
+        "--viewport-size", "1280x800",
+        "--console-level", "error",
+        "--output-dir", "reports/artifacts"
+      ]
+    }
+  }
+}
