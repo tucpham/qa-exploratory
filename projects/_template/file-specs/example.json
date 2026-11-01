@@ -1,0 +1,16 @@
+{
+  "name": "example-import",
+  "description": "Import <đối tượng> từ CSV/Excel ở màn hình <URL>",
+  "format": "csv",
+  "encoding": "utf8",
+  "delimiter": ",",
+  "keyPrefix": "QA-F-",
+  "maxRows": 1000,
+  "columns": [
+    { "name": "code", "type": "string", "required": true, "unique": true, "maxLength": 20, "example": "QA-F-0001" },
+    { "name": "name", "type": "string", "required": true, "maxLength": 100, "example": "Công ty Test" },
+    { "name": "date", "type": "date", "required": true, "format": "YYYY-MM-DD", "example": "2026-10-05" },
+    { "name": "amount", "type": "number", "required": true, "min": 1, "max": 999999999, "integer": true, "example": 5000000 },
+    { "name": "type", "type": "enum", "required": true, "values": ["A", "B"], "example": "A" }
+  ]
+}

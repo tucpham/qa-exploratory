@@ -2,3 +2,11 @@ node_modules/
 reports/artifacts/
 .env
 *.storage-state.json
+.auth/
+fixtures/files/
+.DS_Store
+.claude/settings.local.json
+reports/*/cycle.log
+reports/*/*.out.txt
+reports/*/daemon-*.log
+*.log

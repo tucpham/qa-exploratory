@@ -1,4 +1,4 @@
-// Demo accounting app "MiniAcc" - built ONLY to evaluate the QA bot.
+// Demo accounting app "MiniAcc" - built ONLY to evaluate the exploratory-testing agents.
 // Contains intentionally planted bugs. Do not use as reference code.
 const express = require('express');
 const app = express();

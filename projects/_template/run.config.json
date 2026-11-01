@@ -1,0 +1,21 @@
+{
+  "origin": "https://staging.<project>.example",
+  "reset": {
+    "command": "<lệnh reset test data, ví dụ: ssh staging 'make reset-test-data' hoặc curl -X POST .../test/reset>",
+    "healthcheck": "https://staging.<project>.example/health",
+    "timeoutSec": 120
+  },
+  "loginState": true,
+  "genericCrawl": true,
+  "testers": ["tester-1", "tester-2"],
+  "triager": "triager",
+  "browsers": {
+    "tester-1": { "port": 8931, "role": "<role-thap>" },
+    "tester-1:approver": { "port": 8941, "role": "<role-duyet>" },
+    "tester-2": { "port": 8932, "role": "<role-thap>" },
+    "triager": { "port": 8933, "role": "<role-thap>" },
+    "triager:approver": { "port": 8943, "role": "<role-duyet-2>" }
+  },
+  "maxBudgetUsd": { "design": 2, "session": 6, "triage": 6 },
+  "exportFormats": ["jira-csv"]
+}

@@ -1,0 +1,22 @@
+{
+  "origin": "http://localhost:4100",
+  "reset": {
+    "command": "pkill -f 'demo/miniacc-app/server.js' || true; nohup node demo/miniacc-app/server.js > reports/artifacts/miniacc-server.log 2>&1 &",
+    "healthcheck": "http://localhost:4100/login",
+    "timeoutSec": 30
+  },
+  "loginState": true,
+  "genericCrawl": true,
+  "testers": ["tester-1", "tester-2"],
+  "triager": "triager",
+  "browsers": {
+    "tester-1": { "port": 8931, "role": "staff1" },
+    "tester-1:manager": { "port": 8941, "role": "manager1" },
+    "tester-2": { "port": 8932, "role": "staff1" },
+    "tester-2:manager": { "port": 8942, "role": "manager1" },
+    "triager": { "port": 8933, "role": "staff1" },
+    "triager:manager": { "port": 8943, "role": "manager2" }
+  },
+  "maxBudgetUsd": { "design": 2, "session": 6, "triage": 6 },
+  "exportFormats": ["jira-csv", "backlog-csv"]
+}

@@ -1,0 +1,138 @@
+{
+  "project": "miniacc",
+  "run": "run-001",
+  "generatedAt": "2026-11-01T13:29:10.116Z",
+  "anomalies": {
+    "total": 15,
+    "byFile": [
+      {
+        "file": "session-tester-1.md",
+        "count": 6
+      },
+      {
+        "file": "session-tester-2.md",
+        "count": 9
+      }
+    ]
+  },
+  "triage": {
+    "confirmed": 14,
+    "rejected": 0,
+    "duplicate": 0,
+    "needsClarification": 1,
+    "intermittent": 0,
+    "skippedKnown": 0
+  },
+  "defects": {
+    "total": 11,
+    "bySeverity": {
+      "Nghiêm trọng": 5,
+      "Cao": 5,
+      "Trung bình": 1
+    },
+    "notCoveredByExistingTc": 0,
+    "coveredByExistingTc": 0,
+    "tcCoverageUnknown": 11
+  },
+  "triagePrecision": 1,
+  "humanReview": "missing (QA fills reports/<run>/human-review.json)",
+  "cost": {
+    "usageMethod": "date 2026-10-31",
+    "browserCalls": 298,
+    "browserOutChars": 665530,
+    "perAgent": {
+      "explorer-1": {
+        "calls": 117,
+        "outChars": 194528
+      },
+      "explorer-2": {
+        "calls": 96,
+        "outChars": 258296
+      },
+      "verifier": {
+        "calls": 85,
+        "outChars": 212706
+      }
+    },
+    "browserCallsPerDefect": 27.1
+  },
+  "bugs": [
+    {
+      "id": "BUG-01",
+      "title": "VAT luôn làm tròn LÊN (ceil) thay vì làm tròn đến đồng gần nhất (Hoá đơn - tạo, sửa, nhập CSV)",
+      "severity": "Nghiêm trọng",
+      "rule": "R1 (đáp án có sẵn trong test-data.md: 1.234.561 x 10% = VAT 123.456, Tổng 1.358.017)",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-02",
+      "title": "Dòng \"Tổng doanh thu tháng\" bỏ sót dòng đầu tiên của báo cáo (Báo cáo doanh thu)",
+      "severity": "Nghiêm trọng",
+      "rule": "R9 (\"dòng Tổng = tổng cột Tổng thanh toán của các dòng\")",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-03",
+      "title": "Luồng sửa hoá đơn không kiểm tra kỳ khoá sổ 2026-09 (Hoá đơn - sửa)",
+      "severity": "Nghiêm trọng",
+      "rule": "R7 (\"không được ... sửa hoá đơn có ngày thuộc kỳ đó, và không được đổi ngày hoá đơn vào kỳ đó\")",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-04",
+      "title": "Nhân viên duyệt được hoá đơn bằng cách vào thẳng URL /invoices/{id}/approve (Duyệt hoá đơn)",
+      "severity": "Nghiêm trọng",
+      "rule": "R5 (\"áp dụng cả khi gọi trực tiếp URL\")",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-05",
+      "title": "Nhập CSV: số tiền dạng VN có dấu chấm (5.000.000) bị lưu sai thành 5 (Nhập CSV)",
+      "severity": "Nghiêm trọng",
+      "rule": "R11 (\"chấp nhận ... 1.000.000 ... không được lưu sai giá trị\")",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-06",
+      "title": "Người tạo tự duyệt được hoá đơn của chính mình (Duyệt hoá đơn)",
+      "severity": "Cao",
+      "rule": "R6",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-07",
+      "title": "Form tạo hoá đơn không chặn số hoá đơn trùng (Tạo hoá đơn)",
+      "severity": "Cao",
+      "rule": "R4",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-08",
+      "title": "Form cho phép tạo hoá đơn có Tiền hàng = 0 và âm (Tạo hoá đơn)",
+      "severity": "Cao",
+      "rule": "R2",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-09",
+      "title": "Form cho phép thuế suất VAT ngoài 0/5/8/10% (Tạo hoá đơn)",
+      "severity": "Cao",
+      "rule": "R3",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-10",
+      "title": "Nhập CSV không kiểm định dạng ngày, lách được kỳ khoá sổ 2026-09 (Nhập CSV)",
+      "severity": "Cao",
+      "rule": "R7 (phụ: R11 \"dòng lỗi phải báo rõ, không được lưu sai giá trị\")",
+      "existingTcCoverage": "unknown"
+    },
+    {
+      "id": "BUG-11",
+      "title": "Bộ lọc danh sách loại trừ ngày \"Đến ngày\" (Danh sách hoá đơn)",
+      "severity": "Trung bình",
+      "rule": "R10",
+      "existingTcCoverage": "unknown"
+    }
+  ]
+}

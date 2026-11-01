@@ -1,15 +1,32 @@
 {
-  "name": "dtvn-qa-bot",
-  "version": "0.1.0",
+  "name": "qa-exploratory",
+  "version": "0.2.0",
   "private": true,
-  "description": "AI adhoc-testing bot: prompt + skill + Playwright MCP + oracle scripts",
+  "description": "AI-assisted exploratory testing (SBTM, ISTQB): skill + tester-role agents + Playwright MCP + automated test oracles",
   "scripts": {
     "mcp": "playwright-mcp",
     "call": "node tools/mcp-call.js",
-    "oracle": "node oracles/run.js"
+    "oracle": "node oracles/run.js",
+    "generic": "node oracles/generic.js",
+    "file-oracle": "node oracles/files.js",
+    "fixture": "node fixtures/run.js",
+    "probe": "node probes/run.js",
+    "gen-files": "node tools/gen-test-files.js",
+    "login-state": "node tools/login-state.js",
+    "totp": "node tools/totp.js",
+    "metrics": "node tools/metrics.js",
+    "export-defects": "node tools/export-defects.js",
+    "cycle": "node tools/run-cycle.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "*",
-    "@playwright/mcp": "*"
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@playwright/mcp": "0.0.83",
+    "exceljs": "4.4.0",
+    "iconv-lite": "0.7.3",
+    "pdfjs-dist": "6.3.289"
+  },
+  "devDependencies": {
+    "express": "4.22.3"
   }
 }

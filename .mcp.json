@@ -3,13 +3,14 @@
     "playwright": {
       "command": "npx",
       "args": [
-        "@playwright/mcp@latest",
+        "@playwright/mcp@0.0.83",
         "--headless",
         "--isolated",
         "--allowed-origins", "https://staging.YOUR-PROJECT.local",
         "--viewport-size", "1280x800",
         "--console-level", "error",
-        "--output-dir", "reports/artifacts"
+        "--output-dir", "reports/artifacts",
+        "--caps", "network,storage,pdf"
       ]
     }
   }

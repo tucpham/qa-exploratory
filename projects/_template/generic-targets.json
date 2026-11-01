@@ -1,0 +1,8 @@
+{
+  "base": "https://staging.<project>.example",
+  "roles": { "staff": ".auth/<project>/staff.storage-state.json" },
+  "urls": ["/", "/<list>", "/<detail>/1", "/<report>?month=2026-10", "/<detail>/99999999"],
+  "deny": "approve|delete|logout|/edit|export",
+  "maxPages": 50,
+  "ignore": ["null-literal"]
+}
