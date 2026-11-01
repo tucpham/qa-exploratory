@@ -7,7 +7,10 @@
 // This daemon is only needed when an agent drives the browser through shell commands
 // (CI runners, cron, or this demo).
 //
-// Usage: node tools/browser-daemon.js <listenPort> <allowedOrigin>
+// Usage: node tools/browser-daemon.js <listenPort> <allowedOrigin> [storageStateFile]
+//   storageStateFile: start already logged in as one role (from tools/login-state.js).
+//   Env QA_MCP_CAPS (default "network,storage,pdf") enables extra tools: browser_route (mock/fault injection),
+//   browser_network_state_set (offline), browser_set_storage_state (switch role), browser_pdf_save.
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -16,6 +19,8 @@ const { StdioClientTransport } = require('@modelcontextprotocol/sdk/client/stdio
 
 const listenPort = Number(process.argv[2] || 8931);
 const origin = process.argv[3] || 'http://localhost:4100';
+const storageState = process.argv[4];
+const caps = process.env.QA_MCP_CAPS === undefined ? 'network,storage,pdf' : process.env.QA_MCP_CAPS;
 const root = path.join(__dirname, '..');
 const outDir = path.join(root, 'reports', 'artifacts', String(listenPort));
 fs.mkdirSync(outDir, { recursive: true });
@@ -28,10 +33,12 @@ fs.mkdirSync(outDir, { recursive: true });
       // Guard rail only. Playwright docs: allowed-origins is NOT a security boundary.
       '--allowed-origins', origin,
       '--viewport-size', '1280x800', '--console-level', 'error',
-      '--output-dir', outDir],
+      '--output-dir', outDir,
+      ...(caps ? ['--caps', caps] : []),
+      ...(storageState ? ['--storage-state', path.resolve(root, storageState)] : [])],
     cwd: root, stderr: 'ignore',
   });
-  const client = new Client({ name: 'qa-bot-daemon', version: '0.1.0' });
+  const client = new Client({ name: 'qa-exploratory-daemon', version: '0.1.0' });
   await client.connect(transport);
 
   let queue = Promise.resolve();
@@ -59,5 +66,5 @@ fs.mkdirSync(outDir, { recursive: true });
         } catch (e) { res.statusCode = 500; res.end('daemon error: ' + e.message); }
       });
     });
-  }).listen(listenPort, '127.0.0.1', () => console.log(`browser-daemon :${listenPort} -> Playwright MCP (origin ${origin})`));
+  }).listen(listenPort, '127.0.0.1', () => console.log(`browser-daemon :${listenPort} -> Playwright MCP (origin ${origin}${storageState ? ', state ' + storageState : ''}, caps ${caps || '-'}, files ${outDir})`));
 })().catch(e => { console.error(e); process.exit(1); });

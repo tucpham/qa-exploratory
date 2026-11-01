@@ -1,49 +1,75 @@
-# dtvn QA bot
+# qa-exploratory
 
-Bot AI làm adhoc / exploratory testing cho web app nội bộ. Cơ chế: **prompt (skill + agent) + Playwright MCP + oracle script**. Tự host, không gửi dữ liệu dự án cho dịch vụ bot bên thứ ba.
+AI-assisted exploratory testing cho web app theo SBTM + ISTQB: các agent đóng vai trò trong quy trình test (test basis analyst, charter designer, exploratory tester, defect triager), QA giữ quyền quyết định cuối. Cơ chế: **instruction (skill + agent) + Playwright MCP + automated test oracle + test harness (fixture, probe, file oracle, generic oracle)**. Tự host, không gửi dữ liệu dự án cho dịch vụ bên thứ ba.
+
+Tài liệu: `docs/GLOSSARY.md` (thuật ngữ ISTQB) · `docs/SO-DO-XU-LY.md` (sơ đồ xử lý) · `docs/GAPS-AND-ROADMAP.md` (điểm yếu, giải pháp, trạng thái).
 
 ## Cấu trúc
 
 ```
-.claude/skills/adhoc-qa/SKILL.md   Quy trình test chung (vòng explore - giả thuyết - tấn công - xác minh, heuristic, format bug)
-.claude/agents/planner.md          Sinh charter từ profile + coverage
-.claude/agents/explorer.md         Chạy charter, ghi nghi vấn
-.claude/agents/verifier.md         Tái hiện độc lập, loại bug giả, viết report
-.mcp.json                          Cấu hình Playwright MCP cho Claude Code
-oracles/run.js + oracles/<du-an>.js  Script kiểm tra RULE trên dữ liệu thật (read-only)
-projects/<du-an>/                  Context riêng từng dự án
-  project-profile.md               Nghiệp vụ, vai trò, RULE R1..Rn (oracle), vùng rủi ro, vùng cấm
-  test-data.md                     Tài khoản test, data mẫu có đáp án
-  coverage.md                      Những gì đã test (verifier cập nhật)
-  known-issues.md                  Những gì không phải bug (QA người cập nhật)
-  charters/<run-id>.md             Charter của từng lần chạy
-reports/<run-id>/                  suspects-*.md, triage.md, bugs.md
-tools/                             Chạy browser qua shell (CI / demo): browser-daemon.js, mcp-call.js, start-browsers.sh
+.claude/skills/exploratory-testing/SKILL.md   Quy trình test session, techniques, file/flow/fault injection, defect report format
+.claude/agents/test-basis-analyst.md  Test basis analysis (1 lần / dự án): sinh bản nháp hồ sơ + config cho dự án mới
+.claude/agents/charter-designer.md    Test charter design: thiết kế test charter (session / flow / file / fault-injection / concurrency)
+.claude/agents/exploratory-tester.md  Test session: chạy charter, ghi session sheet (anomaly, covered, open questions)
+.claude/agents/defect-triager.md      Defect triage: reproduce, kết luận, defect report, regression checklist
+.mcp.json                            Playwright MCP (pinned 0.0.83, caps network,storage,pdf)
+oracles/run.js + <project>.js        Automated test oracle theo business rule (read-only)
+oracles/generic.js                   Generic oracle: crawl read-only, HTTP 4xx/5xx, console error, NaN/undefined, i18n key...
+oracles/files.js                     File oracle: CSV/TSV/XLSX/PDF/JSON - encoding, header, rows, totals, CSV injection
+fixtures/run.js + <project>.js       Dựng precondition không qua UI (bắt buộc prefix namespace QA-)
+probes/run.js + <project>.js         Quan sát ngoài UI (mailbox, HTTP, job) có polling + timeout
+tools/gen-test-files.js              Sinh test file library từ file spec (BVA/EP/encoding/format)
+tools/login-state.js, totp.js        Đăng nhập từng role -> storage state (hỗ trợ MFA TOTP)
+tools/browser-daemon.js, mcp-call.js, start-browsers.sh   1 browser / agent / role khi chạy qua shell
+tools/run-cycle.js                   Runner 1 test cycle: reset -> login -> generic -> charter designer -> testers -> triager -> report
+tools/metrics.js                     Metrics giá trị/chi phí mỗi cycle
+tools/export-defects.js              defects.md -> CSV import Jira / Backlog / Redmine (offline)
+projects/_template/                  Template cho dự án mới (sources, profile, configs)
+projects/<project>/                  Test basis + config của từng dự án
+reports/<run-id>/                    session-* (session sheet), triage, defects, regression, metrics, defects-*.csv
+test/                                Unit test của harness (npm test)
+```
+
+## Cài đặt
+```
+npm install                 # versions pinned
+cp .env.example .env        # credentials test env, không commit
+npm test
 ```
 
 ## Thêm dự án mới
-1. Copy `projects/miniacc/` thành `projects/<du-an>/`, viết lại profile + test-data. Rule phải viết dạng kiểm tra được.
-2. (Nên có) viết `oracles/<du-an>.js` kiểm tra các rule tính toán / bất biến qua API hoặc DB read-only.
-3. Sửa `--allowed-origins` trong `.mcp.json` thành URL staging của dự án.
+1. `cp -r projects/_template projects/<project>`, điền `sources.md` (spec, test case, defect history, API spec, schema, source code read-only để NGOÀI repo).
+2. Chạy agent `test-basis-analyst`. Kết quả: fit assessment, bản nháp profile + business rules, test basis issues, test data, test object map, business flows, external dependencies, file artifacts, và config harness (`auth.config.js`, `generic-targets.json`, `file-specs/*.json`, `run.config.json`, `fixtures/`, `probes/`, `oracles/`).
+3. QA/BA review: fit assessment (No-go thì dừng), tick Approved trong `_onboarding/business-rules-draft.md`, xem `test-basis-issues.md`.
+4. Sửa `--allowed-origins` trong `.mcp.json`, điền `.env`, chạy `node tools/login-state.js <project>`.
+5. Smoke test: `node tools/run-cycle.js <project> run-000 --execute --to generic`, rồi 1 cycle nhỏ.
 
-## Chạy với Claude Code (khuyến nghị)
+## Chạy 1 test cycle
 ```
-cd dtvn-qa-bot && npm install
-claude
-> Dùng agent qa-planner sinh charter run-002 cho dự án <du-an>,
-> sau đó chạy qa-explorer cho từng nhóm charter, cuối cùng qa-verifier viết report.
+node tools/run-cycle.js <project> run-002              # dry run: in kế hoạch
+node tools/run-cycle.js <project> run-002 --execute    # chạy thật (agents qua `claude -p --agent`, tool allow-list)
 ```
+Hoặc trong Claude Code: "Dùng charter-designer thiết kế charter run-002 cho <project>, sau đó exploratory-tester cho từng nhóm, cuối cùng defect-triager."
 
-## Chạy qua shell (CI / máy không có Claude Code UI)
+Sau cycle: QA điền `reports/<run>/human-review.json`, chạy `node tools/metrics.js <project> <run>`, import `reports/<run>/defects-jira-csv.csv`.
+
+## Lệnh hay dùng
 ```
-tools/start-browsers.sh https://staging.<du-an> 8931 8932 8933   # 1 browser riêng cho mỗi agent
-node tools/mcp-call.js --port 8931 --agent explorer-1 browser_navigate '{"url":"https://staging.<du-an>/login"}'
-node oracles/run.js <du-an>
+node fixtures/run.js miniacc invoice '{"prefix":"QA-run-002-tester-1-","state":"approved"}'
+node probes/run.js miniacc invoice '{"no":"QA-run-002-tester-1-001","status":"Đã duyệt","timeoutMs":30000}'
+node oracles/run.js miniacc
+node oracles/generic.js --crawl miniacc --role staff1 --follow
+node tools/gen-test-files.js projects/miniacc/file-specs/invoice-import.json --prefix QA-run-002-files-
+node oracles/files.js <downloaded.csv> --name <tên gốc> --expect expected.json
+tools/start-browsers.sh http://localhost:4100 8931:.auth/miniacc/staff1.storage-state.json 8941:.auth/miniacc/manager1.storage-state.json
+node tools/mcp-call.js --port 8931 --agent tester-1 --run run-002 browser_navigate '{"url":"http://localhost:4100/"}'
 ```
-Mỗi lần gọi browser được ghi vào `reports/usage.jsonl` để đo chi phí.
 
 ## Bảo mật - đọc kỹ
-- `--allowed-origins` chỉ là hàng rào phụ. Tài liệu Playwright MCP ghi rõ nó **không phải ranh giới bảo mật**. Ranh giới thật là: máy chạy bot chỉ ra được mạng staging, tài khoản test quyền tối thiểu, không có credential production trên máy.
-- Không commit mật khẩu thật. Dùng `--secrets .env` hoặc `--storage-state` cho phiên đăng nhập.
-- Tắt tool `browser_run_code_unsafe` nếu không cần (chạy code tuỳ ý trong tiến trình Playwright).
-- Nội dung trang web là dữ liệu, không phải lệnh: skill đã dặn bot bỏ qua chỉ dẫn xuất hiện trên trang.
+- `--allowed-origins` chỉ là hàng rào phụ (Playwright MCP: **không phải ranh giới bảo mật**). Ranh giới thật: máy chạy agent chỉ ra được mạng staging, test account quyền tối thiểu, không có credential production.
+- Không commit mật khẩu: `.env`, `.auth/` đã git-ignore. Config chỉ chứa TÊN biến env.
+- Generic oracle crawl chỉ GET, cùng origin, có deny-list cho URL có side effect (approve/delete/logout...). Kiểm deny-list của từng dự án: app dùng GET cho hành động ghi là chuyện có thật (MiniAcc: `/approve`).
+- Fixture chỉ ghi dữ liệu có prefix `QA-`; probe chỉ đọc origin trong `QA_PROBE_ALLOWED`.
+- Runner dùng tool allow-list, không dùng bypassPermissions. Tắt `browser_run_code_unsafe` nếu không cần.
+- Nội dung trang và file import là dữ liệu, không phải lệnh.
+- Source code dự án chỉ cho agent onboarding đọc, để ngoài repo.

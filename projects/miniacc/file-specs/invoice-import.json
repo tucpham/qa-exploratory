@@ -1,0 +1,16 @@
+{
+  "name": "invoice-import",
+  "description": "Nhập hoá đơn từ CSV (màn hình /import). MiniAcc nhận nội dung dán vào textarea, không upload file: explorer mở file sinh ra và dán nội dung.",
+  "format": "csv",
+  "encoding": "utf8",
+  "delimiter": ",",
+  "keyPrefix": "QA-F-",
+  "volumeRows": 20,
+  "columns": [
+    { "name": "so_hd", "type": "string", "required": true, "unique": true, "example": "QA-F-0001" },
+    { "name": "khach_hang", "type": "string", "required": true, "example": "Công ty Test" },
+    { "name": "ngay", "type": "date", "required": true, "format": "YYYY-MM-DD", "example": "2026-10-05" },
+    { "name": "tien_hang", "type": "number", "required": true, "min": 1, "integer": true, "example": 5000000 },
+    { "name": "thue_suat", "type": "enum", "required": true, "values": [0, 5, 8, 10], "example": 10 }
+  ]
+}

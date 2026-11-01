@@ -1,4 +1,4 @@
-# MiniAcc - 10 planted bugs (answer key, hidden from bot)
+# MiniAcc - 10 planted bugs (answer key, hidden from testers)
 
 | ID | Module | Bug | Rule violated |
 |---|---|---|---|

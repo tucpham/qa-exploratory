@@ -1,0 +1,11 @@
+{
+  "base": "http://localhost:4100",
+  "roles": {
+    "staff1": ".auth/miniacc/staff1.storage-state.json",
+    "manager1": ".auth/miniacc/manager1.storage-state.json"
+  },
+  "urls": ["/", "/invoices/new", "/invoices/1", "/invoices/4", "/import", "/report", "/report?month=2026-09", "/report?month=2026-11", "/report?month=abc", "/invoices/99999", "/periods", "/?from=2026-10-01&to=2026-10-31"],
+  "deny": "approve|logout|/edit",
+  "maxPages": 40,
+  "ignore": ["null-literal"]
+}
