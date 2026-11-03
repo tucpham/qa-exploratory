@@ -14,11 +14,15 @@ const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 const { ROOT, parseArgs, poll } = require('./lib/common');
 
+// Every agent prompt starts with this so the ad-hoc testing mindset is applied on each run, not only when the model remembers the skill.
+const MINDSET = 'Áp dụng phần "Tư duy cốt lõi" của skill exploratory-testing (.claude/skills/exploratory-testing/SKILL.md, đọc nếu chưa có trong context): ' +
+  'Tested = Checked + Explored; tò mò và hoài nghi, nhiều persona, rủi ro trước theo RCRCRC, dựng model (kiểm kê biến, entity, bảng state × event, SFDIPOT), phá giả định, mỗi session một mục tiêu, ' +
+  'thấy bug thì đào sâu, học từ bug cũ (bug-patterns.md) nhưng không lặp lại chính mình (pesticide paradox), biết khi nào dừng một hướng, thấy cả những gì không có (absence). ';
 const STEPS = ['reset', 'login', 'generic', 'browsers', 'design', 'sessions', 'triage', 'report'];
 const ALLOWED_TOOLS = [
   'Read', 'Write', 'Edit', 'Glob', 'Grep',
   'Bash(node tools/mcp-call.js:*)', 'Bash(node oracles/run.js:*)', 'Bash(node oracles/files.js:*)', 'Bash(node oracles/generic.js:*)',
-  'Bash(node probes/run.js:*)', 'Bash(node fixtures/run.js:*)', 'Bash(node tools/gen-test-files.js:*)', 'Bash(ls:*)', 'Bash(cat:*)',
+  'Bash(node probes/run.js:*)', 'Bash(node fixtures/run.js:*)', 'Bash(node tools/gen-test-files.js:*)', 'Bash(node tools/random-pairs.js:*)', 'Bash(ls:*)', 'Bash(cat:*)',
 ].join(',');
 
 function claudeCmd(agent, prompt, cfg, budgetKey) {
@@ -102,25 +106,27 @@ async function main() {
     const browsersOf = agent => Object.entries(cfg.browsers).filter(([a]) => a === agent || a.startsWith(`${agent}:`))
       .map(([a, b]) => `cổng ${b.port}${b.role ? ` (role ${b.role}, đã đăng nhập)` : ''}`).join(', ');
     await step('design', async () => {
-      const p = `Dự án ${project}, test cycle ${run}. Thiết kế charter vào projects/${project}/charters/${run}.md. ` +
+      const p = MINDSET + `Dự án ${project}, test cycle ${run}. Thiết kế charter vào projects/${project}/charters/${run}.md. ` +
         `Phân nhóm cho đúng các exploratory tester: ${cfg.testers.join(', ')} (tên nhóm = tên tester). ` +
         `Namespace dữ liệu: QA-${run}-<tester>-. ` + (cfg.genericCrawl ? `Đọc anomaly generic ở reports/${run}/generic.json. ` : '') +
-        'Nếu có defect cũ chưa đóng trong reports/*/defects.md thì thêm charter confirmation testing.';
+        'Nếu có defect cũ chưa đóng trong reports/*/defects.md thì thêm charter confirmation (thăm dò quanh bản fix, giao cho tester khác người đã tìm ra). ' +
+        `Đọc và cập nhật projects/${project}/charter-history.md để không lặp lại tổ hợp charter cũ.`;
       sh('charter-design', ...Object.values(claudeCmd('charter-designer', p, cfg, 'design')));
     });
     await step('sessions', async () => {
       await Promise.all(cfg.testers.map(agent => {
-        const p = `Dự án ${project}, test cycle ${run}. Bạn là ${agent}. Chạy nhóm charter "${agent}" trong projects/${project}/charters/${run}.md. ` +
+        const p = MINDSET + `Dự án ${project}, test cycle ${run}. Bạn là ${agent}. Chạy nhóm charter "${agent}" trong projects/${project}/charters/${run}.md. ` +
           `Browser: ${browsersOf(agent)}, gọi qua node tools/mcp-call.js --port <port> --agent ${agent} --run ${run}. ` +
-          `Namespace dữ liệu QA-${run}-${agent}-. Ghi session sheet (anomaly, Covered, Not testable, Open questions) vào reports/${run}/session-${agent}.md.`;
+          `Namespace dữ liệu QA-${run}-${agent}-. Ghi mindset checkpoint vào reports/${run}/notes-${agent}.md trước khi tấn công. ` +
+          `Ghi session sheet (anomaly có Category, Covered, Not testable, Open questions, UX observations, Ideas not tried, Debrief PROOF) vào reports/${run}/session-${agent}.md.`;
         return shAsync(agent, claudeCmd('exploratory-tester', p, cfg, 'session'), { QA_AGENT: agent });
       }));
     });
     await step('triage', async () => {
       const v = cfg.triager || 'triager';
-      const p = `Dự án ${project}, test cycle ${run}. Triage mọi anomaly trong reports/${run}/session-*.md. ` +
+      const p = MINDSET + `Dự án ${project}, test cycle ${run}. Triage mọi anomaly trong reports/${run}/session-*.md. ` +
         `Browser: ${browsersOf(v)}, gọi qua node tools/mcp-call.js --port <port> --agent ${v} --run ${run}. Namespace QA-${run}-${v}-. ` +
-        `Viết reports/${run}/defects.md, triage.md, regression.md và cập nhật projects/${project}/coverage.md.`;
+        `Viết reports/${run}/defects.md, triage.md, regression.md và cập nhật projects/${project}/coverage.md, projects/${project}/bug-patterns.md.`;
       sh('triage', ...Object.values(claudeCmd('defect-triager', p, cfg, 'triage')), { QA_AGENT: v });
     });
     await step('report', async () => {

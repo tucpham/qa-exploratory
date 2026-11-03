@@ -1,0 +1,21 @@
+{
+  "_comment": "Nouns = entities/objects of the app, verbs = actions. Used by tools/random-pairs.js for freestyle charters.",
+  "nouns": [
+    "<entity 1>",
+    "<entity 2>",
+    "<screen / report>"
+  ],
+  "verbs": [
+    "create",
+    "edit",
+    "delete",
+    "approve",
+    "export",
+    "import",
+    "filter",
+    "reload mid-way",
+    "open in 2 tabs",
+    "repeat twice",
+    "switch role"
+  ]
+}

@@ -21,11 +21,18 @@
 ## Business rules (test oracle) - mỗi defect phải trích ít nhất 1 rule (hoặc 1 generic / consistency oracle, xem skill mục 6)
 - **R1** ...
 
+## Never / Always (bất biến, chỉ dùng khi đã Approved)
+| ID | Never / Always | Ví dụ | Nguồn | Approved |
+|---|---|---|---|---|
+| N1 | Always: ... (vd tổng = cộng các dòng ở mọi report) | | | [ ] |
+| N2 | Never: ... (vd mất dữ liệu người dùng đã lưu) | | | [ ] |
+
 ## Pending confirmation (chưa được QA/BA duyệt, KHÔNG dùng để kết luận defect)
 -
 
-## Product risks (risk-based testing, ưu tiên)
--
+## Product risks (risk-based testing, ưu tiên theo RCRCRC)
+| Vùng | RCRCRC (Recent / Core / Risky / Configuration / Repaired / Chronic) | Lý do |
+|---|---|---|
 
 ## Business flows (chi tiết: business-flows.md)
 | Flow | Steps / roles | Setup bằng API/fixture được không |

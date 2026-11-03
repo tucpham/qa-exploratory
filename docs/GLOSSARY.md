@@ -37,7 +37,33 @@ Repo dùng thuật ngữ tiếng Anh theo ISTQB Glossary (CTFL v4.0) và Session
 | **Generic oracle** | Oracle không cần business rule: HTTP 5xx, console error, NaN/undefined, i18n key, mojibake... | `oracles/generic.js`, skill mục 6.2 |
 | **Consistency oracle** | Oracle khi sản phẩm tự mâu thuẫn: cùng dữ liệu khác nhau giữa các nơi hiển thị / các con đường, thông báo khác sự thật, mất hoặc nhân bản dữ liệu ngoài ý muốn. Cần bằng chứng cả hai phía | skill mục 6.3 |
 | **Developer assumption** | Điều happy path ngầm giả định (đi đúng thứ tự, làm 1 lần, không bị ngắt, 1 người 1 tab, thấy gì xử lý nấy...). Phá giả định là cách chính để sinh test idea | skill mục 2.1-2.2, charter |
-| **Tour / persona** | Cách tổ chức freestyle session theo một "vai" (money, saboteur, obsessive, back-alley, all-nighter, antisocial; người dùng vội, power user...) | skill mục 2.3, 3 |
+| **Tour / persona** | Cách tổ chức freestyle session theo một "vai" (money, landmark, saboteur, obsessive, back-alley, all-nighter, antisocial; người mới, người vội, người cẩn thận, người cố tình phá, mạng yếu / máy cũ, admin vs user thường...) | skill mục 2.3, 3 |
+| **Tư duy cốt lõi (core mindset)** | 8 nguyên tắc luôn bật: tò mò/hoài nghi, nhiều persona, rủi ro trước, dựng model, phá giả định, mỗi session một mục tiêu, đào sâu khi thấy bug, học từ bug cũ | skill `exploratory-testing`, phần Tư duy cốt lõi |
+| **Mindset checkpoint** | Ghi đầu session: model, giả định của dev, persona, chiều SFDIPOT, thứ tự rủi ro, bug pattern đã đối chiếu | `notes-<agent>.md` |
+| **SFDIPOT** | Heuristic quét chiều rủi ro: Structure, Function, Data, Interfaces, Platform, Operations, Time | skill mục 3 |
+| **CRUD heuristic** | Đi hết vòng đời Create, Read, Update, Delete của mỗi đối tượng | skill mục 3 |
+| **Goldilocks** | Thử quá ít / vừa / quá nhiều cho input, danh sách, file, số lần thao tác | skill mục 3 |
+| **Interrupt** | Cắt ngang hành động ghi dữ liệu (refresh, back, đóng tab, mất mạng, API lỗi, hết phiên) rồi kiểm hậu quả | skill mục 3 |
+| **Debrief (PROOF)** | Tổng kết cuối session: Past, Results, Obstacles, Outlook, Feelings | session sheet, skill 2.7 |
+| **Bug pattern** | Bài học tổng quát rút từ defect (giả định bị phá, triệu chứng, nơi nên thử tiếp) | `projects/<project>/bug-patterns.md` |
+| **Tested = Checked + Explored** | Checking (TC, automated oracle) xác nhận điều đã biết; exploring tìm phần lưới đó không phủ | skill, đầu file |
+| **Variable inventory (kiểm kê biến)** | Liệt kê thứ có thể thay đổi: hiển nhiên (field), tinh tế (URL param, thứ tự, định dạng), gián tiếp (số record, state record khác, thời điểm) | skill 2.1 |
+| **RCRCRC** | Chọn vùng test: Recent, Core, Risky, Configuration, Repaired, Chronic | skill Tư duy cốt lõi #3 |
+| **COUNT / Some-None-All / Beginning-Middle-End** | Heuristic về số lượng, tập con và vị trí phần tử | skill mục 3 |
+| **Never / Always** | Bất biến luôn phải giữ / không bao giờ được vi phạm (N1..Nn), chỉ dùng khi BA đã duyệt | profile, skill 6.1 |
+| **State table (bảng state × event)** | Dạng bảng của state model; ô chưa rõ kết quả là ý tưởng test | skill 2.1, business-flows.md |
+| **Pesticide paradox** | Lặp lại cùng cách test thì ngày càng ít tìm ra bug; chống bằng charter history + đổi persona/tour/heuristic | charter-history.md |
+| **Nouns × Verbs** | Ghép ngẫu nhiên (có seed) đối tượng × hành động để phá đường đi quen thuộc | `tools/random-pairs.js` |
+| **Recon charter** | Session vẽ bản đồ app thật (màn hình, entity, state, biến, dependency) trước khi tấn công | charter designer |
+| **Smoke charter** | Session ngắn sau mỗi deploy: các vùng core + từng bản fix | charter designer |
+| **Exploratory regression** | Kiểm bản fix rồi khám phá quanh nó, do tester khác người tìm ra bug | `confirmation` charter |
+| **Stopping heuristics** | Dừng một hướng khi: hết câu hỏi, không học thêm, thông tin không dẫn tới hành động, có câu hỏi quan trọng hơn | skill Tư duy cốt lõi #9 |
+| **Absence** | Thứ lẽ ra phải có mà không có (xác nhận, audit, validation ở kênh khác, field ở export) | skill 2.4 |
+| **UX observation** | Tone / convention / friction / absence không có oracle: cho người review, không phải defect | skill 6.4 |
+| **Bug taxonomy (Category)** | Input validation, Boundary, Calculation, Logic, Security, Usability, Compatibility, Syntax, Performance | defect report |
+| **Nightmare Headline Game** | Tưởng tượng tiêu đề báo tồi tệ nhất rồi suy ngược ra charter | charter designer |
+| **Trust boundary / What If?** | Chỗ app nhận dữ liệu từ nơi nó không kiểm soát; hỏi "nếu nó chậm/lỗi/sai thì sao" | external-dependencies.md |
+| **Inattentional blindness** | Càng chú tâm vào thứ đang kiểm càng bỏ sót thứ bất ngờ; chống bằng đổi tiêu điểm có chủ đích | skill 2.4 |
 | **Freestyle charter** | Charter mission rộng theo 1 vùng rủi ro + tour/persona, oracle vẫn là rule + consistency | `charters/<run-id>.md` |
 | **Session notes** | Model, giả định, ý tưởng đã thử / chưa thử, chuỗi bước chính xác của từng anomaly (SBTM session sheet) | `reports/<run-id>/notes-<agent>.md` |
 | **Off-charter** | Phần budget (~20%) tester dùng cho rủi ro phát hiện trên đường đi, ngoài mission | skill mục 2.7 |

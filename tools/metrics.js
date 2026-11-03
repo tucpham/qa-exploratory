@@ -36,10 +36,33 @@ function parseBugs(md) {
     const id = (p.match(/^\[?(BUG-\d+)\]?/) || [])[1]; if (!id) continue;
     const field = name => ((p.match(new RegExp(`^- (?:${name}):\\s*(.+)$`, 'mi')) || [])[1] || '').trim();
     const cov = field('Existing TC coverage|TC hiện có');
-    bugs.push({ id, title: p.split('\n')[0].replace(/^\[?BUG-\d+\]?\s*/, ''), severity: field('Severity|Mức độ'), rule: field('Rule|Rule vi phạm'),
+    bugs.push({ id, title: p.split('\n')[0].replace(/^\[?BUG-\d+\]?\s*/, ''), severity: field('Severity|Mức độ'), rule: field('Rule violated|Rule vi phạm|Rule'),
+      category: field('Category|Loại'), foundVia: field('Found via'), offCharter: /^yes|^có/i.test(field('Off-charter')),
       existingTcCoverage: /^(no|không|chưa)/i.test(cov) ? 'no' : /^(yes|có)/i.test(cov) ? 'yes' : 'unknown' });
   }
   return bugs;
+}
+
+// Mindset compliance: did each agent's notes / session sheet actually apply the core mindset (skill "Tư duy cốt lõi")?
+const MINDSET_CHECKS = [
+  ['variables', /kiểm kê biến|variable/i], ['stateTable', /state\s*[×x]\s*event|bảng state/i], ['assumptions', /giả định|assumption/i],
+  ['personas', /persona/i], ['sfdipot', /SFDIPOT/], ['rcrcrc', /RCRCRC|Recent|Repaired|Chronic/], ['neverAlways', /Never|Always/],
+  ['bugPatterns', /bug[- ]pattern|P-\d{2}/i], ['differentFromLast', /khác (gì )?(so với )?lần trước|different from last|pesticide/i],
+  ['stopReason', /lý do dừng|dừng hướng|stop(ped)? (because|reason)/i], ['debriefProof', /PROOF|Debrief/i], ['uxObservations', /UX observation/i],
+];
+function mindset(dir) {
+  const agents = {};
+  for (const f of fs.readdirSync(dir).filter(f => /^(notes|session)-.*\.md$/.test(f))) {
+    const agent = f.replace(/^(notes|session)-|\.md$/g, '');
+    (agents[agent] ||= []).push(fs.readFileSync(path.join(dir, f), 'utf8'));
+  }
+  const out = {};
+  for (const [a, texts] of Object.entries(agents)) {
+    const t = texts.join('\n');
+    const hits = Object.fromEntries(MINDSET_CHECKS.map(([k, re]) => [k, re.test(t)]));
+    out[a] = { score: `${Object.values(hits).filter(Boolean).length}/${MINDSET_CHECKS.length}`, missing: Object.keys(hits).filter(k => !hits[k]) };
+  }
+  return out;
 }
 
 function usage(run, date) {
@@ -73,6 +96,8 @@ function compute(project, run, opt = {}) {
     defects: {
       total: bugs.length,
       bySeverity: bugs.reduce((o, b) => ((o[b.severity || 'unknown'] = (o[b.severity || 'unknown'] || 0) + 1), o), {}),
+      byCategory: bugs.reduce((o, b) => ((o[b.category || 'unknown'] = (o[b.category || 'unknown'] || 0) + 1), o), {}),
+      offCharter: bugs.filter(b => b.offCharter).length,
       notCoveredByExistingTc: bugs.filter(b => b.existingTcCoverage === 'no').length,
       coveredByExistingTc: bugs.filter(b => b.existingTcCoverage === 'yes').length,
       tcCoverageUnknown: bugs.filter(b => b.existingTcCoverage === 'unknown').length,
@@ -86,6 +111,7 @@ function compute(project, run, opt = {}) {
     } : 'missing (QA fills reports/<run>/human-review.json)',
     cost: { usageMethod: u.method, browserCalls: calls, browserOutChars: u.rows.reduce((s, r) => s + (r.outChars || 0), 0), perAgent,
       browserCallsPerDefect: bugs.length ? +(calls / bugs.length).toFixed(1) : null },
+    mindsetCompliance: mindset(dir),
     bugs,
   };
   return m;
@@ -102,10 +128,14 @@ function toMd(m) {
     `| Triage precision (confirmed / (confirmed + rejected)) | ${m.triagePrecision ?? '-'} |`,
     `| Human review | ${h ? `accepted ${h.accepted}/${h.reviewed}, false positive ${h.falsePositive}, already in tracker ${h.alreadyInTracker}` : m.humanReview} |`,
     `| Browser calls (${m.cost.usageMethod}) | ${m.cost.browserCalls} (${Object.entries(m.cost.perAgent).map(([k, v]) => `${k} ${v.calls}`).join(', ')}) |`,
-    `| Browser calls per defect | ${m.cost.browserCallsPerDefect ?? '-'} |`, ''].join('\n');
+    `| Browser calls per defect | ${m.cost.browserCallsPerDefect ?? '-'} |`,
+    `| Defects by category | ${Object.entries(m.defects.byCategory || {}).map(([k, v]) => `${k} ${v}`).join(', ') || '-'} |`,
+    `| Defects found off-charter | ${m.defects.offCharter ?? '-'} |`,
+    `| Mindset compliance (notes + session sheet) | ${Object.entries(m.mindsetCompliance || {}).map(([a, v]) => `${a} ${v.score}${v.missing.length ? ` (thiếu: ${v.missing.join(', ')})` : ''}`).join('; ') || '-'} |`,
+    ''].join('\n');
 }
 
-module.exports = { compute, parseTriage, parseBugs, toMd };
+module.exports = { compute, parseTriage, parseBugs, toMd, mindset, MINDSET_CHECKS };
 
 if (require.main === module) {
   const { pos, opt } = parseArgs(process.argv.slice(2));

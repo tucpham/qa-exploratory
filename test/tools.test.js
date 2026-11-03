@@ -106,3 +106,61 @@ test('metrics parsers read triage and bug reports', () => {
   const e = parseDefects('### [BUG-01] VAT sai\n- Mức độ: Cao\n- Rule vi phạm: R1\n- Bước: 1. a\n---\n');
   assert.strictEqual(e[0].severity, 'Cao'); assert.strictEqual(e[0].rule, 'R1');
 });
+
+test('ad-hoc testing mindset is in the skill and preloaded by every testing agent', () => {
+  const root = path.join(__dirname, '..');
+  const read = f => fs.readFileSync(path.join(root, f), 'utf8');
+  const skill = read('.claude/skills/exploratory-testing/SKILL.md');
+  for (const s of ['## Tư duy cốt lõi', 'Mindset checkpoint', 'PROOF', 'SFDIPOT', '**CRUD**', '**Goldilocks**', '**Interrupt**', 'landmark tour', 'money tour', 'back-alley', 'Người cố tình phá', 'Mạng yếu / máy cũ', 'bug-patterns.md'])
+    assert.ok(skill.includes(s), `skill missing: ${s}`);
+  for (const a of ['exploratory-tester', 'charter-designer', 'defect-triager']) {
+    const md = read(`.claude/agents/${a}.md`);
+    const fm = md.split('---')[1];
+    assert.match(fm, /^skills:.*\bexploratory-testing\b/m, `${a} must preload the skill`);
+    assert.ok(md.includes('Tư duy cốt lõi'), `${a} must reference the core mindset`);
+  }
+  assert.ok(read('tools/run-cycle.js').includes('Tư duy cốt lõi'), 'runner prompts must carry the mindset');
+  assert.ok(fs.existsSync(path.join(root, 'projects/_template/bug-patterns.md')));
+});
+
+test('28 mindset points from Explore It!, Itkonen 2005 and ET 2026 are wired into skill, agents and docs', () => {
+  const root = path.join(__dirname, '..');
+  const read = f => fs.readFileSync(path.join(root, f), 'utf8');
+  const skill = read('.claude/skills/exploratory-testing/SKILL.md');
+  for (const s of ['Tested = Checked + Explored', 'Kiểm kê biến', '**COUNT**', '**Some / None / All**', '**Beginning / Middle / End**', 'RCRCRC',
+    'Never / Always', 'state × event', 'pesticide paradox', 'Biết khi nào dừng', 'Tính ngược kết quả', 'Đổi tiêu điểm', 'Hỏi câu sâu hơn',
+    'Tín hiệu thay cho cảm xúc', 'absence', 'UX observations', 'Nouns × Verbs', 'Back / Forward', 'trust boundary', 'Không tái hiện được',
+    'Category:', 'Violate data format rules', 'AI bổ sung cho QA người'])
+    assert.ok(skill.includes(s), `skill missing: ${s}`);
+  const cd = read('.claude/agents/charter-designer.md');
+  for (const s of ['Nightmare Headline', 'charter-history.md', '`recon`', '`smoke`', 'tester khác', 'Explore <target> with <resources> to discover <information>', 'What If?', 'random-pairs'])
+    assert.ok(cd.includes(s), `charter-designer missing: ${s}`);
+  const tr = read('.claude/agents/defect-triager.md');
+  for (const s of ['kiểm soát được mọi biến', 'Category', 'UX OBSERVATION', 'người tìm ra']) assert.ok(tr.includes(s), `triager missing: ${s}`);
+  const an = read('.claude/agents/test-basis-analyst.md');
+  for (const s of ['Inputs / Processing / Outputs / Questions', 'Never / Always', 'state × event', 'trust boundary', 'RCRCRC']) assert.ok(an.includes(s), `analyst missing: ${s}`);
+  const gaps = read('docs/GAPS-AND-ROADMAP.md');
+  for (const s of ['Tested = Checked + Explored', 'debrief 3 nhóm', 'Coverage là điểm yếu số 1', 'Kiến thức domain']) assert.ok(gaps.includes(s), `roadmap missing: ${s}`);
+  assert.ok(read('projects/_template/project-profile.md').includes('Never / Always'));
+  assert.ok(read('projects/_template/external-dependencies.md').includes('Trust boundary'));
+  assert.ok(read('tools/run-cycle.js').includes('random-pairs.js'));
+});
+
+test('random pairs are reproducible per seed and differ across seeds', () => {
+  const { pairs, nounsFromMap } = require('../tools/random-pairs');
+  const v = { nouns: ['a', 'b', 'c', 'd'], verbs: ['x', 'y', 'z'] };
+  assert.deepStrictEqual(pairs(v, 5, 'run-1'), pairs(v, 5, 'run-1'));
+  assert.notDeepStrictEqual(pairs(v, 5, 'run-1'), pairs(v, 5, 'run-2'));
+  assert.strictEqual(pairs(v, 50, 's').length, 12);
+  assert.deepStrictEqual(nounsFromMap('| Screen | URL |\n|---|---|\n| Hoá đơn | /invoices |\n| Báo cáo | /report |'), ['Hoá đơn', 'Báo cáo']);
+});
+
+test('metrics reads category and scores mindset compliance', () => {
+  const { parseBugs, mindset } = require('../tools/metrics');
+  const b = parseBugs('### [BUG-01] X\n- Severity: High\n- Category: Calculation\n- Rule violated: R1\n- Off-charter: yes\n- Existing TC coverage: No\n');
+  assert.strictEqual(b[0].category, 'Calculation'); assert.strictEqual(b[0].rule, 'R1'); assert.strictEqual(b[0].offCharter, true);
+  const d = tmp();
+  fs.writeFileSync(path.join(d, 'notes-t1.md'), 'Kiểm kê biến; bảng state × event; giả định; persona; SFDIPOT; RCRCRC; Never; bug pattern P-01; khác so với lần trước; lý do dừng');
+  fs.writeFileSync(path.join(d, 'session-t1.md'), '## Debrief PROOF\n## UX observations');
+  assert.strictEqual(mindset(d).t1.score, '12/12');
+});

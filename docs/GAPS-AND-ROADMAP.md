@@ -173,6 +173,13 @@ Nhiều dự án sẽ thất bại không phải do AI tester, mà do điều ki
 
 ## 10. Phạm vi KHÔNG phù hợp (nói rõ với khách / PM)
 
+**Định vị (từ Hendrickson, Itkonen & Rautiainen 2005, workshop Exploratory Testing 2026):**
+- **Tested = Checked + Explored.** TC cũ + automated oracle là checking; AI tester là exploring. Không dùng AI để chạy lại regression suite.
+- **AI bổ sung cho QA người, không thay thế.** AI mạnh ở liệt kê có hệ thống (biến, biên, state, kênh nhập, nhất quán dữ liệu). Người mạnh ở tone, quy ước, friction và nhận ra *những gì thiếu*. Mỗi cycle có mục "UX observations" để QA người review.
+- **Kiến thức domain là giới hạn của LLM.** Hiểu biết rộng nhưng nông; profile, Never/Always đã duyệt và bug pattern là phần bù, nên phải được QA/BA review kỹ.
+- **Coverage là điểm yếu số 1 của exploratory testing** (bài báo 2005: mọi người được phỏng vấn đều nêu). Ưu tiên P1: parser coverage có cấu trúc (rule × channel × technique × SFDIPOT) và charter history.
+- **Đánh giá pilot bằng debrief 3 nhóm**: QA người chạy cùng charter với agent, so: cả hai cùng thấy / chỉ AI thấy / chỉ người thấy. Đây là cách đo trung thực "AI thiếu gì".
+
 Phạm vi: exploratory testing chức năng trên web. Không thay thế: performance/load test, security pentest đầy đủ, mobile native, test hardware/IoT, usability test với người dùng thật, test toàn bộ regression suite. Mỗi profile có mục **Out of scope**.
 
 ---

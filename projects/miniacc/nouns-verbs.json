@@ -1,0 +1,39 @@
+{
+  "_comment": "Derived from project-profile.md (screens, entities, actions). Used by tools/random-pairs.js.",
+  "nouns": [
+    "hoá đơn chờ duyệt",
+    "hoá đơn đã duyệt",
+    "hoá đơn seed HD-0903 (kỳ khoá)",
+    "số hoá đơn",
+    "ngày hoá đơn",
+    "thuế suất",
+    "tiền hàng",
+    "file CSV nhập",
+    "dòng lỗi trong CSV",
+    "danh sách hoá đơn",
+    "bộ lọc ngày",
+    "báo cáo doanh thu tháng",
+    "dòng Tổng của báo cáo",
+    "kỳ kế toán 2026-09",
+    "màn hình kỳ kế toán (/periods)",
+    "trang chi tiết hoá đơn"
+  ],
+  "verbs": [
+    "tạo",
+    "sửa",
+    "duyệt",
+    "duyệt 2 lần",
+    "nhập CSV",
+    "lọc",
+    "mở bằng URL trực tiếp",
+    "mở ở 2 tab rồi lưu ở tab cũ",
+    "back sau khi submit",
+    "reload giữa chừng",
+    "đổi role giữa chừng",
+    "đổi ngày sang kỳ khác",
+    "để trống",
+    "nhập giá trị cực lớn",
+    "so với báo cáo",
+    "bookmark rồi mở lại"
+  ]
+}

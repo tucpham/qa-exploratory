@@ -30,14 +30,15 @@ Codebase lớn: lập inventory theo module trước, phân tích từng module,
 
 ## Các bước
 1. **Inventory**: liệt kê nguồn, ngôn ngữ, phiên bản, ngày cập nhật vào `_onboarding/inventory.md`. Đánh dấu spec có vẻ cũ hơn code (ngày, version).
-2. **Trích xuất theo nguồn**:
+2. **Trích xuất theo nguồn** (đọc chủ động: với mỗi đoạn spec, phân loại thành **Inputs / Processing / Outputs / Questions**; mỗi Question là một Open question hoặc test basis issue):
    - spec: câu có "phải / không được / chỉ / bắt buộc / tối đa / tối thiểu / làm tròn / khi... thì..." (tiếng Nhật: 必須, 不可, のみ, 以上, 以下, 未満, 超, 四捨五入, 切り捨て, 切り上げ, 場合).
    - testcase: mỗi Expected result là 1 rule candidate; bộ input/expected cụ thể => test data có đáp án; TC pass ổn định nhiều cycle => behavior đã xác nhận (exploratory testing nên đánh vào biến thể XUNG QUANH, không lặp lại TC); TC từng fail/flaky => risk area. Ghi lại vùng TC đã cover để charter designer không lặp.
-   - defect: gom theo module / root cause => product risk; defect đã fix => regression rule; defect "Won't fix / As designed" => known-issues.
+   - defect: gom theo module / root cause => product risk; defect đã fix => regression rule; defect "Won't fix / As designed" => known-issues; mỗi nhóm root cause lặp lại => 1 bug pattern tổng quát trong `bug-patterns.md` (học từ bug cũ).
    - api/schema: required, type, length, enum, unique, FK, state column, default, precision/scale của số.
    - source: validation, authorization check, state machine, công thức tính, làm tròn, timezone, route/screen/role list, background job, external call, file import/export. Với mỗi check, so tất cả đường nhập; thiếu => test basis issue.
-3. **Business flows (end-to-end)**: ghép các màn hình thành luồng nghiệp vụ nhiều bước, nhiều role (ví dụ: tạo đơn -> duyệt 2 cấp -> xuất hoá đơn -> đối soát). Với mỗi flow: các bước, role mỗi bước, state transition, precondition, dữ liệu chuyển giữa các bước, bước nào có thể setup qua API/fixture thay vì qua UI.
-4. **External dependencies**: DB, hệ thống khác, payment, email/SMS, SSO, file storage, batch/cron job, message queue. Với mỗi cái: dùng ở flow nào, trên test environment là real / sandbox / stub / không có, cách quan sát kết quả (API, mailbox test, log, bảng DB đọc), có test double (stub/simulator) để giả lập lỗi/timeout không. Không quan sát được => ghi rõ là giới hạn.
+3. **Business flows (end-to-end)**: ghép các màn hình thành luồng nghiệp vụ nhiều bước, nhiều role (ví dụ: tạo đơn -> duyệt 2 cấp -> xuất hoá đơn -> đối soát). Với mỗi flow: các bước, role mỗi bước, state transition, precondition, dữ liệu chuyển giữa các bước, bước nào có thể setup qua API/fixture thay vì qua UI. Với object chính của flow, viết **bảng state × event** (hàng = state, cột = event của từng role / hệ thống / thời gian; ô = kết quả theo spec, hoặc `?` nếu spec không nói). Ô `?` là test basis issue hoặc hạt giống charter.
+   **Entity và quan hệ**: liệt kê entity (thứ tạo ra được), thuộc tính chính, quan hệ cha/con/tham chiếu (từ schema/API); ghi vào `test-object-map.md` để tester dùng CRUD × quan hệ.
+4. **External dependencies**: DB, hệ thống khác, payment, email/SMS, SSO, file storage, batch/cron job, message queue. Đánh dấu **trust boundary** (chỗ app nhận dữ liệu từ nơi nó không kiểm soát: file import, API ngoài, dữ liệu do hệ thống/role khác tạo). Với mỗi cái: dùng ở flow nào, trên test environment là real / sandbox / stub / không có, cách quan sát kết quả (API, mailbox test, log, bảng DB đọc), có test double (stub/simulator) để giả lập lỗi/timeout không. Không quan sát được => ghi rõ là giới hạn.
 5. **File artifacts**: mọi upload/import và download/export: định dạng, encoding (UTF-8, UTF-8 BOM, Shift_JIS), cột, giới hạn kích thước, quy tắc validate, dữ liệu export phải khớp màn hình/API nào. Đề xuất bộ test file và check cho file oracle.
 6. **Non-determinism**: rule phụ thuộc thời gian (ngày, kỳ, timezone, hết hạn), xử lý bất đồng bộ, dữ liệu dùng chung giữa nhiều người.
 7. **Cross-check và confidence**:
@@ -45,8 +46,9 @@ Codebase lớn: lập inventory theo module trước, phân tích từng module,
    - `Medium`: 1 nguồn spec hoặc TC.
    - `Needs confirmation`: chỉ từ code/schema, hoặc nguồn mâu thuẫn.
    Gộp rule trùng, giữ mọi trích dẫn.
-8. **Oracle type** mỗi rule: `automated` (tính toán, invariant dữ liệu, file content, kiểm qua API/DB read-only) hoặc `manual-ui` (luồng, message, quyền trên màn hình).
-9. **Viết output**, rồi **self-check** automated oracle: với mỗi ví dụ có đáp án, hàm kiểm phải cho đúng kết quả; nếu test environment cho phép, chạy `node oracles/run.js <project>`. Ghi `_onboarding/self-check.md`.
+8. **Never / Always**: soạn danh sách bất biến N1..Nn (luôn phải: sổ sách cân, tổng = cộng các dòng, mọi thay đổi có dấu vết...; không bao giờ: mất dữ liệu người dùng, role không có quyền làm được hành động ghi...). Mỗi dòng có nguồn và ví dụ; để ở mục "Never / Always" của profile với `Approved [ ]`. Chỉ N đã được BA/QA đánh dấu duyệt mới được dùng để kết luận defect.
+9. **Oracle type** mỗi rule: `automated` (tính toán, invariant dữ liệu, file content, kiểm qua API/DB read-only) hoặc `manual-ui` (luồng, message, quyền trên màn hình).
+10. **Viết output**, rồi **self-check** automated oracle: với mỗi ví dụ có đáp án, hàm kiểm phải cho đúng kết quả; nếu test environment cho phép, chạy `node oracles/run.js <project>`. Ghi `_onboarding/self-check.md`.
 
 ## Output (đều là bản nháp)
 Test basis (đọc bởi charter designer/tester/triager):
@@ -58,6 +60,8 @@ Test basis (đọc bởi charter designer/tester/triager):
 - `test-object-map.md`: screen, form, field (type, required, giới hạn), button, role thấy được, URL; đánh dấu control khó cho accessibility snapshot (canvas, iframe, rich editor, virtual scroll).
 - `business-flows.md`, `external-dependencies.md`, `file-artifacts.md` theo bước 3-5.
 - `coverage.md` (vùng đã có TC cover, theo rule × input channel) và `known-issues.md`.
+- `bug-patterns.md` theo `projects/_template/bug-patterns.md`: pattern rút từ defect history, và giả định của dev rút từ spec / code (vd "chỉ form tạo có validation"), để tester và charter designer dùng làm hạt giống.
+- Trong `project-profile.md`, mục product risks xếp theo **RCRCRC** (Recent, Core, Risky, Configuration, Repaired, Chronic; tiền và phân quyền đi trước trong cùng mức); ghi nhãn RCRCRC và lý do từng mục.
 
 Test harness config (theo mẫu trong `projects/_template/` và `projects/miniacc/`):
 - `auth.config.js`: login từng role cho `tools/login-state.js` (password/TOTP lấy từ env, chỉ ghi TÊN biến env); thêm tên biến vào `.env.example`.
